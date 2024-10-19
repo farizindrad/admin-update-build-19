@@ -32,8 +32,14 @@ const Login = () => {
 
         // Simpan token ke dalam cookies
         const token = await user.getIdToken(); // Mendapatkan ID token
-        nookies.set(null, "token", token, { path: "/" }); // Menyimpan token ke dalam cookies
-        nookies.set(null, "role", role, { path: "/" }); // Menyimpan role ke dalam cookies
+        nookies.set(null, "token", token, {
+          path: "/",
+          maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+        });
+        nookies.set(null, "role", role, {
+          path: "/",
+          maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+        });
 
         // Redirect berdasarkan role
         if (role === "admin" || role === "superadmin") {

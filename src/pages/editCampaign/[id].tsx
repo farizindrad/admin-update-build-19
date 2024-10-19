@@ -1,31 +1,46 @@
-import React, { useState } from "react";
-import dynamic from "next/dynamic"; // Import dynamic dari Next.js
-import { ref, set } from "firebase/database";
-import { database } from "../firebase/firebase"; // Sesuaikan dengan path firebase Anda
+// pages/editCampaign/[id].tsx
+import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { ref, get, set } from "firebase/database";
+import { database } from "../../firebase/firebase"; // Sesuaikan dengan path firebase Anda
+import { useRouter } from "next/router";
 import {
   getStorage,
   ref as storageRef,
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage"; // Import Firebase Storage
-import { useRouter } from "next/router";
-
 import "react-quill/dist/quill.snow.css";
 
-// Import ReactQuill secara dinamis untuk menghindari error di server-side
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
-interface CreateCampaignProps {
-  role: string; // Menambahkan prop role
-}
-
-const CreateCampaign = ({ role }: CreateCampaignProps) => {
+const EditCampaign = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [targetAmount, setTargetAmount] = useState("");
   const [endDate, setEndDate] = useState("");
   const router = useRouter();
+  const { id } = router.query;
+
+  useEffect(() => {
+    const fetchCampaign = async () => {
+      if (id) {
+        const campaignRef = ref(database, `campaigns/${id}`);
+        const snapshot = await get(campaignRef);
+        const campaignData = snapshot.val();
+        if (campaignData) {
+          setTitle(campaignData.title);
+          setDescription(campaignData.description);
+          setTargetAmount(campaignData.targetAmount);
+          setEndDate(campaignData.endDate);
+          // Gambar tidak perlu di-set di sini, karena kita hanya mengedit informasi
+        }
+      }
+    };
+
+    fetchCampaign();
+  }, [id]);
 
   const handleImageUpload = async (file: File) => {
     const storage = getStorage();
@@ -37,38 +52,35 @@ const CreateCampaign = ({ role }: CreateCampaignProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const id = Date.now();
-
-    if (!imageFile) {
-      alert("Silakan pilih file gambar.");
-      return;
-    }
+    const campaignId = id as string;
 
     try {
-      // Upload gambar dan dapatkan URL-nya
-      const imageUrl = await handleImageUpload(imageFile);
+      // Jika ada file gambar yang di-upload, upload dan ambil URL-nya
+      let imageUrl = "";
+      if (imageFile) {
+        imageUrl = await handleImageUpload(imageFile);
+      }
 
       // Simpan data kampanye ke Firebase
-      await set(ref(database, `campaigns/${id}`), {
-        id,
+      await set(ref(database, `campaigns/${campaignId}`), {
         title,
         description,
-        imageUrl,
-        targetAmount: targetAmount || "10000000",
+        imageUrl: imageUrl || undefined, // Hanya update jika ada gambar baru
+        targetAmount: targetAmount || "10000000", // Default target amount
         endDate,
-        buttonText: "Donasi Sekarang",
-        approved: role === "superadmin" ? "accepted" : "pending", // 'true' jika superadmin, 'false' jika admin (pending)
+        buttonText: "Donasi Sekarang", // Default button text
       });
 
+      // Setelah berhasil, arahkan kembali ke halaman kampanye
       router.push("/campaigns");
     } catch (error) {
-      console.error("Error creating campaign:", error);
+      console.error("Error updating campaign:", error);
     }
   };
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Buat Kampanye Baru</h1>
+      <h1 className="text-2xl font-bold mb-6">Edit Kampanye</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-gray-700">Judul:</label>
@@ -89,7 +101,9 @@ const CreateCampaign = ({ role }: CreateCampaignProps) => {
           />
         </div>
         <div>
-          <label className="block text-gray-700">Upload Gambar:</label>
+          <label className="block text-gray-700">
+            Upload Gambar (optional):
+          </label>
           <input
             type="file"
             accept="image/*"
@@ -99,7 +113,6 @@ const CreateCampaign = ({ role }: CreateCampaignProps) => {
               }
             }}
             className="border p-2 w-full"
-            required
           />
         </div>
         <div>
@@ -125,11 +138,11 @@ const CreateCampaign = ({ role }: CreateCampaignProps) => {
           type="submit"
           className="bg-blue-500 text-white py-2 px-4 rounded"
         >
-          Buat Kampanye
+          Update Kampanye
         </button>
       </form>
     </div>
   );
 };
 
-export default CreateCampaign;
+export default EditCampaign;

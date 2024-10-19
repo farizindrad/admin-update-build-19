@@ -1,13 +1,13 @@
 // components/CardCampaign.tsx
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
+// import Link from "next/link";
 import { formatCurrency } from "../firebase/format";
 
 type CardCampaignProps = {
   id: string;
   title: string;
   description: string;
-  buttonText: string;
+  //   buttonText: string;
   imageUrl: string;
   endDate: string;
   targetAmount: string;
@@ -17,7 +17,7 @@ const CardCampaign: React.FC<CardCampaignProps> = ({
   id,
   title,
   description,
-  buttonText,
+  //   buttonText,
   imageUrl,
   endDate,
   targetAmount,
@@ -103,12 +103,12 @@ const CardCampaign: React.FC<CardCampaignProps> = ({
             {percentage.toFixed(2)}% dari target tercapai
           </p>
         </div>
-        <Link
+        {/* <Link
           href={`/campaigns/${id}`}
           className="mt-auto inline-block text-center bg-transparent border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white transition-colors duration-300 py-2 px-4 rounded-md"
         >
           {buttonText} →
-        </Link>
+        </Link> */}
       </div>
     </div>
   );
