@@ -25,9 +25,9 @@ function MyApp({ Component, pageProps }: AppProps) {
               data.deviceToken !== nookies.get(null, "deviceToken")
             ) {
               // Alert di perangkat lama
-              alert(
-                "You have been logged out from other device as your session has been moved to this device."
-              );
+              // alert(
+              //   "You have been logged out from other device as your session has been moved to this device."
+              // );
 
               // Logout perangkat ini
               auth.signOut();
