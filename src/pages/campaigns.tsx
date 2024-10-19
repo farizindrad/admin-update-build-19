@@ -7,6 +7,7 @@ import CardCampaign from "../components/CardCampaigns"; // Import CardCampaign
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import MainLayout from "@/components/MainLayout";
 
 interface Campaign {
   id: number;
@@ -39,49 +40,54 @@ const CampaignsPage = ({ role, campaigns }: CampaignsPageProps) => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <Link href="/create-campaign" className="text-blue-500 hover:underline">
-        Buat Kampanye Baru
-      </Link>
-      <Link
-        href="/rejected"
-        className="text-blue-500 hover:underline mt-4 block"
-      >
-        Lihat Kampanye Ditolak
-      </Link>
-      <Link href="/approve-campaigns" className="text-blue-500 hover:underline">
-        Approval Kampanye
-      </Link>
-      <h1 className="text-2xl font-bold mb-6">Daftar Kampanye</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {campaignList.map((campaign) => (
-          <div key={campaign.id} className="relative">
-            <CardCampaign
-              id={campaign.id.toString()} // Pastikan ID adalah string
-              title={campaign.title}
-              description={campaign.description}
-              imageUrl={campaign.imageUrl}
-              endDate={campaign.endDate}
-              targetAmount={campaign.targetAmount} // Pastikan targetAmount adalah string
-            />
-            {role === "superadmin" && (
+    <MainLayout>
+      <div className="container mx-auto p-4">
+        <Link href="/create-campaign" className="text-blue-500 hover:underline">
+          Buat Kampanye Baru
+        </Link>
+        <Link
+          href="/rejected"
+          className="text-blue-500 hover:underline mt-4 block"
+        >
+          Lihat Kampanye Ditolak
+        </Link>
+        <Link
+          href="/approve-campaigns"
+          className="text-blue-500 hover:underline"
+        >
+          Approval Kampanye
+        </Link>
+        <h1 className="text-2xl font-bold mb-6">Daftar Kampanye</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {campaignList.map((campaign) => (
+            <div key={campaign.id} className="relative">
+              <CardCampaign
+                id={campaign.id.toString()} // Pastikan ID adalah string
+                title={campaign.title}
+                description={campaign.description}
+                imageUrl={campaign.imageUrl}
+                endDate={campaign.endDate}
+                targetAmount={campaign.targetAmount} // Pastikan targetAmount adalah string
+              />
+              {role === "superadmin" && (
+                <button
+                  onClick={() => handleDelete(campaign.id)}
+                  className="absolute top-2 right-2 bg-red-500 text-white py-1 px-2 rounded"
+                >
+                  Hapus
+                </button>
+              )}
               <button
-                onClick={() => handleDelete(campaign.id)}
-                className="absolute top-2 right-2 bg-red-500 text-white py-1 px-2 rounded"
+                onClick={() => router.push(`/editCampaign/${campaign.id}`)}
+                className="absolute top-2 right-14 bg-yellow-500 text-white py-1 px-2 rounded"
               >
-                Hapus
+                Edit
               </button>
-            )}
-            <button
-              onClick={() => router.push(`/editCampaign/${campaign.id}`)}
-              className="absolute top-2 right-14 bg-yellow-500 text-white py-1 px-2 rounded"
-            >
-              Edit
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
+            </div>
+          ))}
+        </div>
+      </div>{" "}
+    </MainLayout>
   );
 };
 

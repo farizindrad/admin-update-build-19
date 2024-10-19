@@ -1,10 +1,10 @@
-// /components/login.tsx
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/firebase"; // Sesuaikan path ini
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get, update } from "firebase/database";
 import { useRouter } from "next/router";
 import nookies from "nookies"; // Impor nookies
+import { v4 as uuidv4 } from "uuid"; // Impor uuid
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +14,7 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Sign in dengan email dan password
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -21,24 +22,34 @@ const Login = () => {
       );
       const user = userCredential.user;
 
-      // Ambil informasi role dari database
+      // Buat deviceToken unik menggunakan uuid
+      const deviceToken = uuidv4();
+
+      // Ambil informasi user dari database
       const db = getDatabase();
-      const userRef = ref(db, `users/${user.uid}`); // Pastikan path ini sesuai
+      const userRef = ref(db, `users/${user.uid}`);
       const snapshot = await get(userRef);
 
       if (snapshot.exists()) {
         const userData = snapshot.val();
         const role = userData.role;
 
+        // Update status login dan deviceToken
+        await update(userRef, {
+          ...userData, // Pastikan data lama tidak hilang
+          isLoggedIn: true, // Set isLoggedIn ke true
+          deviceToken, // Tambahkan atau perbarui deviceToken
+        });
+
         // Simpan token ke dalam cookies
-        const token = await user.getIdToken(); // Mendapatkan ID token
+        const token = await user.getIdToken(); // Mendapatkan ID token dari user
         nookies.set(null, "token", token, {
           path: "/",
-          maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+          maxAge: 30 * 24 * 60 * 60, // 30 hari
         });
         nookies.set(null, "role", role, {
           path: "/",
-          maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+          maxAge: 30 * 24 * 60 * 60, // 30 hari
         });
 
         // Redirect berdasarkan role

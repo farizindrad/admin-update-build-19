@@ -1,10 +1,17 @@
 // pages/create-campaign.tsx
 import CreateCampaign from "@/components/CreateCampaign";
+import MainLayout from "@/components/MainLayout";
 import { GetServerSideProps } from "next";
 import nookies from "nookies";
 
 const CreateCampaignPage = ({ role }: { role: string }) => {
-  return <CreateCampaign role={role} />;
+  return (
+    <>
+      <MainLayout>
+        <CreateCampaign role={role} />
+      </MainLayout>
+    </>
+  );
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
