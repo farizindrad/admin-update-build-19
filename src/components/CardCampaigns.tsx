@@ -41,7 +41,7 @@ const CardCampaign: React.FC<CardCampaignProps> = ({
     const fetchTotalAmount = async () => {
       try {
         const response = await fetch(
-          `https://9276-110-136-78-231.ngrok-free.app/total-amount/${id}`,
+          `https://f448-110-136-78-231.ngrok-free.app/total-amount/${id}`,
           {
             method: "GET",
             headers: {

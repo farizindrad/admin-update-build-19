@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import nookies from "nookies";
 import { auth } from "../firebase/firebase";
 import { signOut as firebaseSignOut } from "firebase/auth";
-import { getDatabase, ref, set } from "firebase/database";
+import { getDatabase, ref, update } from "firebase/database";
 
 const Navbar: React.FC = () => {
   const router = useRouter();
@@ -12,13 +12,15 @@ const Navbar: React.FC = () => {
   const handleSignOut = async () => {
     try {
       const user = auth.currentUser;
+      console.log(user);
       if (user) {
         const db = getDatabase();
         const userRef = ref(db, `users/${user.uid}`);
-        await set(userRef, {
+        await update(userRef, {
           isLoggedIn: false,
-          deviceId: null,
+          deviceToken: null,
         });
+        console.log("as");
       }
 
       await firebaseSignOut(auth);

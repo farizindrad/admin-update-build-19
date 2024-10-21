@@ -2,13 +2,17 @@
   "name": "admin-web-backup",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
+    "start-node": "node server",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node server.cjs",
+    "start-next": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "express": "^4.21.1",
     "file-saver": "^2.0.5",
     "firebase": "^10.14.1",
     "firebase-admin": "^12.6.0",
