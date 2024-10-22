@@ -244,7 +244,7 @@ const LogTransactionsPage = ({ transactions }: LogTransactionsPageProps) => {
                 checked={filterCampaignId}
                 onChange={() => setFilterCampaignId(!filterCampaignId)}
               />
-              Campaign ID
+              Tampilkan hanya yang memiliki Campaign ID
             </label>
           </div>
           <div>

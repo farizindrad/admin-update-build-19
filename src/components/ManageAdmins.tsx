@@ -15,7 +15,7 @@ interface Admin {
 interface User {
   name: string;
   email: string;
-  role: string;
+  role: "admin" | "volunteer"; // Menambahkan role volunteer
 }
 
 const ManageAdmins = () => {
@@ -23,7 +23,7 @@ const ManageAdmins = () => {
   const [formData, setFormData] = useState<Omit<Admin, "uid">>({
     name: "",
     email: "",
-    role: "admin", // Default role
+    role: "admin", // Default role diatur ke admin
   });
   const [isEditing, setIsEditing] = useState(false);
 
@@ -44,7 +44,9 @@ const ManageAdmins = () => {
     fetchAdmins();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -107,12 +109,12 @@ const ManageAdmins = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Manage Admins</h2>
+      <h2 className="text-xl font-bold mb-4">Manage</h2>
       <ul>
         {admins.map((admin) => (
           <li key={admin.uid} className="flex justify-between mb-2">
             <span>
-              {admin.name} - {admin.email}
+              {admin.name} - {admin.email} ({admin.role})
             </span>
             <div>
               <button
@@ -133,13 +135,13 @@ const ManageAdmins = () => {
       </ul>
 
       <h2 className="text-xl font-semibold mt-4">
-        {isEditing ? "Edit Admin" : "Tambah Admin"}
+        {isEditing ? "Edit" : "Tambah"}
       </h2>
       <form onSubmit={handleSubmit} className="mt-2">
         <input
           type="text"
           name="name"
-          placeholder="Nama Admin"
+          placeholder="Nama"
           value={formData.name}
           onChange={handleChange}
           className="border rounded p-2 mb-2 w-full"
@@ -148,17 +150,27 @@ const ManageAdmins = () => {
         <input
           type="email"
           name="email"
-          placeholder="Email Admin"
+          placeholder="Email"
           value={formData.email}
           onChange={handleChange}
           className="border rounded p-2 mb-2 w-full"
           required
         />
+        {/* Dropdown untuk memilih role */}
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="border rounded p-2 mb-2 w-full"
+        >
+          <option value="admin">Admin</option>
+          <option value="volunteer">Volunteer</option>
+        </select>
         <button
           type="submit"
           className="bg-green-500 text-white px-4 py-2 rounded"
         >
-          {isEditing ? "Update Admin" : "Tambah Admin"}
+          {isEditing ? "Update" : "Tambah"}
         </button>
       </form>
     </div>
