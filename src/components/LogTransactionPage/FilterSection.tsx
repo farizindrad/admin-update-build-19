@@ -32,9 +32,8 @@ const FilterSection = ({
   };
 
   return (
-    <div className="flex mb-4 space-x-4">
+    <div className="flex mb-4 space-x-2 w-[550px]">
       <div>
-        <label>Filter Bulan: </label>
         <select
           value={filterMonth}
           onChange={(e) => setFilterMonth(e.target.value)}
@@ -66,7 +65,6 @@ const FilterSection = ({
         </label>
       </div>
       <div>
-        <label>Urutkan Berdasarkan: </label>
         <select
           value={sortBy}
           onChange={(e) => handleSortChange(e.target.value)}
@@ -80,7 +78,7 @@ const FilterSection = ({
         {sortBy && (
           <button
             onClick={handleSortOrderChange}
-            className="ml-2 bg-blue-500 text-white px-2 py-1 rounded"
+            className="bg-blue-500 text-white px-2 py-1 rounded"
           >
             {sortOrder === "asc" ? "Ascending" : "Descending"}
           </button>

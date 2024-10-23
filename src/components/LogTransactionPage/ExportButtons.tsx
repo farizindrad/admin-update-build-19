@@ -109,7 +109,7 @@ const ExportButtons = ({ filteredTransactions }: ExportButtonsProps) => {
   };
 
   return (
-    <div className="mb-4">
+    <div className="mx-32 mb-4">
       <button
         onClick={exportToPDF}
         className="mr-2 bg-blue-500 text-white px-4 py-2 rounded"
