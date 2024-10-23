@@ -1,13 +1,6 @@
 import { GetServerSideProps } from "next";
 import nookies from "nookies";
-import {
-  ref,
-  get,
-  query,
-  orderByKey,
-  limitToFirst,
-  startAt,
-} from "firebase/database";
+import { ref, get } from "firebase/database";
 import { database } from "../firebase/firebase"; // Sesuaikan dengan path firebase Anda
 import MainLayout from "@/components/MainLayout";
 import jsPDF from "jspdf";
@@ -52,23 +45,15 @@ interface Transaction {
 
 interface LogTransactionsPageProps {
   transactions: { [key: string]: Transaction };
-  totalPages: number;
-  currentPage: number;
 }
 
-const LogTransactionsPage = ({
-  transactions,
-  totalPages,
-  currentPage,
-}: LogTransactionsPageProps & { totalPages: number; currentPage: number }) => {
-  const [filterMonth, setFilterMonth] = useState<string>("");
+const LogTransactionsPage = ({ transactions }: LogTransactionsPageProps) => {
+  const [filterMonth, setFilterMonth] = useState<string>(""); // filterMonth adalah string
+  const [sortBy, setSortBy] = useState<string>(""); // Menyimpan kriteria (date/status)
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [filterCampaignId, setFilterCampaignId] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState<string>("date");
-  const [sortOrder, setSortOrder] = useState<string>("asc");
 
-  const limit = 15;
-
-  // Filter dan sort transactions
+  // Fungsi untuk mem-filter transaksi berdasarkan bulan
   const filterTransactionsByMonth = (transactions: {
     [key: string]: Transaction;
   }) => {
@@ -80,7 +65,9 @@ const LogTransactionsPage = ({
     return Object.fromEntries(filtered);
   };
 
+  // Fungsi untuk mengurutkan transaksi berdasarkan kriteria dan urutan (ascending/descending)
   const sortTransactions = (transactions: { [key: string]: Transaction }) => {
+    // Pertama, filter transaksi yang tidak memiliki campaignId jika checkbox diaktifkan
     const filteredTransactions = filterCampaignId
       ? Object.entries(transactions).filter(
           ([, transaction]) =>
@@ -89,6 +76,7 @@ const LogTransactionsPage = ({
         )
       : Object.entries(transactions);
 
+    // Kemudian, urutkan transaksi
     const sorted = filteredTransactions.sort(([, a], [, b]) => {
       if (sortBy === "date") {
         return sortOrder === "asc"
@@ -101,8 +89,9 @@ const LogTransactionsPage = ({
           : b.status.localeCompare(a.status);
       }
       if (sortBy === "campaign id") {
-        const campaignA = a.campaignId ?? Number.MAX_SAFE_INTEGER;
-        const campaignB = b.campaignId ?? Number.MAX_SAFE_INTEGER;
+        const campaignA = a.campaignId ?? Number.MAX_SAFE_INTEGER; // Gunakan nilai besar untuk nilai null/undefined
+        const campaignB = b.campaignId ?? Number.MAX_SAFE_INTEGER; // Gunakan nilai besar untuk nilai null/undefined
+
         return sortOrder === "asc"
           ? campaignA - campaignB
           : campaignB - campaignA;
@@ -113,12 +102,9 @@ const LogTransactionsPage = ({
     return Object.fromEntries(sorted);
   };
 
-  const paginatedTransactions = sortTransactions(
-    filterTransactionsByMonth(transactions)
-  );
-
+  // Menggabungkan filter dan sorting
   const filteredTransactions = sortTransactions(
-    filterTransactionsByMonth(paginatedTransactions)
+    filterTransactionsByMonth(transactions)
   );
 
   // Fungsi untuk menangani perubahan sortBy
@@ -188,7 +174,7 @@ const LogTransactionsPage = ({
 
   const exportToXLSX = () => {
     const ws = XLSX.utils.json_to_sheet(
-      Object.entries(filteredTransactions).map(([id, transaction]) => ({
+      Object.entries(transactions).map(([id, transaction]) => ({
         ID: id,
         Campaign_Id: transaction.campaignId,
         Jumlah: transaction.amount,
@@ -206,7 +192,7 @@ const LogTransactionsPage = ({
 
   const exportToCSV = () => {
     const csv = Papa.unparse(
-      Object.entries(filteredTransactions).map(([id, transaction]) => ({
+      Object.entries(transactions).map(([id, transaction]) => ({
         ID: id,
         Campaign_Id: transaction.campaignId,
         Jumlah: transaction.amount,
@@ -226,6 +212,88 @@ const LogTransactionsPage = ({
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-6">Log Transaksi</h1>
 
+        {/* Filter dan Sort Section */}
+        <div className="flex mb-4 space-x-4">
+          <div>
+            <label>Filter Bulan: </label>
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              className="border px-2 py-1"
+            >
+              <option value="">Semua Bulan</option>
+              <option value="1">Januari</option>
+              <option value="2">Februari</option>
+              <option value="3">Maret</option>
+              <option value="4">April</option>
+              <option value="5">Mei</option>
+              <option value="6">Juni</option>
+              <option value="7">Juli</option>
+              <option value="8">Agustus</option>
+              <option value="9">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+          </div>
+          {/* Checkbox untuk filter campaignId */}
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                checked={filterCampaignId}
+                onChange={() => setFilterCampaignId(!filterCampaignId)}
+              />
+              Tampilkan hanya yang memiliki Campaign ID
+            </label>
+          </div>
+          <div>
+            <label>Urutkan Berdasarkan: </label>
+            {/* Dropdown untuk urutan */}
+            <select
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="border px-2 py-1"
+            >
+              <option value="">Tidak Diurutkan</option>
+              <option value="date">Tanggal</option>
+              <option value="status">Status</option>
+              <option value="campaign id">Campaign Id</option>
+            </select>
+
+            {sortBy && (
+              <button
+                onClick={handleSortOrderChange}
+                className="ml-2 bg-blue-500 text-white px-2 py-1 rounded"
+              >
+                {sortOrder === "asc" ? "Ascending" : "Descending"}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tombol Ekspor */}
+        <div className="mb-4">
+          <button
+            onClick={exportToPDF}
+            className="mr-2 bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Ekspor PDF
+          </button>
+          <button
+            onClick={exportToXLSX}
+            className="mr-2 bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Ekspor XLSX
+          </button>
+          <button
+            onClick={exportToCSV}
+            className="bg-yellow-500 text-white px-4 py-2 rounded"
+          >
+            Ekspor CSV
+          </button>
+        </div>
+
         {/* Tabel Transaksi */}
         <div className="overflow-x-auto">
           <table className="min-w-full border border-gray-300">
@@ -242,7 +310,7 @@ const LogTransactionsPage = ({
               </tr>
             </thead>
             <tbody>
-              {Object.entries(transactions).map(([id, transaction]) => (
+              {Object.entries(filteredTransactions).map(([id, transaction]) => (
                 <tr key={id}>
                   <td className="border px-4 py-2">{id}</td>
                   <td className="border px-4 py-2">{transaction.campaignId}</td>
@@ -259,26 +327,6 @@ const LogTransactionsPage = ({
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
-        <div className="mt-4">
-          {/* Tautan ke halaman sebelumnya */}
-          {currentPage > 1 && (
-            <a href={`?page=${currentPage - 1}`} className="mr-2 text-blue-600">
-              Previous
-            </a>
-          )}
-          {/* Tautan ke halaman berikutnya */}
-          {currentPage < totalPages && (
-            <a href={`?page=${currentPage + 1}`} className="text-blue-600">
-              Next
-            </a>
-          )}
-        </div>
-        {/* Menampilkan informasi halaman saat ini */}
-        <p className="mt-2">
-          Halaman {currentPage} dari {totalPages}
-        </p>
       </div>
     </MainLayout>
   );
@@ -311,27 +359,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const transactionsRef = ref(database, "new-transactions"); // Sesuaikan dengan path database Anda
   const snapshot = await get(transactionsRef);
   const transactionsData = snapshot.val() || {};
-  const transactionsTyped = transactionsData as { [key: string]: Transaction };
-
-  // Pagination logic
-  const page = parseInt(context.query.page as string) || 1; // Menggunakan type assertion
-  const limit = 15; // Jumlah item per halaman
-  const totalTransactions = Object.keys(transactionsTyped).length; // Total jumlah transaksi
-  const totalPages = Math.ceil(totalTransactions / limit); // Total halaman
-  const startIndex = (page - 1) * limit; // Indeks mulai untuk slice
-  const paginatedTransactions = Object.entries(transactionsTyped)
-    .slice(startIndex, startIndex + limit)
-    .reduce((acc, [key, value]) => {
-      acc[key] = value;
-      return acc;
-    }, {} as { [key: string]: Transaction });
 
   return {
-    props: {
-      transactions: paginatedTransactions,
-      totalPages,
-      currentPage: page,
-    },
+    props: { transactions: transactionsData },
   };
 };
 
