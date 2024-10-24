@@ -41,7 +41,7 @@ const CardCampaign: React.FC<CardCampaignProps> = ({
     const fetchTotalAmount = async () => {
       try {
         const response = await fetch(
-          `https://8d9e-110-136-78-231.ngrok-free.app/total-amount/${id}`,
+          `https://vercel-backend-flax.vercel.app/total-amount/${id}`,
           {
             method: "GET",
             headers: {
